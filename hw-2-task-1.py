@@ -6,26 +6,49 @@ def parse_input(user_input):
     cmd = cmd.strip().lower()
     return cmd, *args
 
+# Декоратор для обробки помилки ValueError, KeyError, IndexError.
+def input_error(func):
+    def inner(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ValueError:
+            return "Give me name and phone please."
+        except KeyError:
+            return "Contact not found."
+        except IndexError:
+            return "Incorrect number of arguments."
+
+    return inner
+
 # Додавання нового контакту в пам'ять.
+@input_error
 def add_contact(args, contacts):
     name, phone = args
     contacts[name] = phone
     return "Contact added."
 
 # Додавання в пам'ять нового номеру телефону для контакту, що вже існує.
+@input_error
 def change_contact(args):
     name, phone = args
-    if name in contacts:
-        contacts[name] = phone
-        return "Contact updated."
-    else:
-        return "Contact not found."
+    # Обробка помилки за допомогою декоратора.
+    if name not in contacts:
+        raise KeyError
+    
+    contacts[name] = phone
+    return "Contact updated."
 
 # Вивід у консоль номеру телефону для зазначеного контакту.
+@input_error
 def show_phone(args):
     name = args[0]
     phone = contacts.get(name)
-    return phone if phone else "Contact not found."
+    # Обробка помилки за допомогою декоратора.
+    if not phone:
+        raise KeyError
+    
+    return phone
+    
 
 # Вивід у консоль всіх збережених контактів з номерами телефонів.
 def show_all():
